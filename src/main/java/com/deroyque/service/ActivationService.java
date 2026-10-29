@@ -5,9 +5,12 @@ import com.deroyque.domain.RequestStatus;
 import com.deroyque.dto.ActivationResponse;
 import com.deroyque.dto.CreateActivationRequest;
 import com.deroyque.exception.DuplicateRequestException;
+import com.deroyque.exception.ResourceNotFoundException;
 import com.deroyque.mapper.ActivationMapper;
 import com.deroyque.repository.ActivationRequestRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,4 +51,40 @@ public class ActivationService {
             throw new DuplicateRequestException("ExternalId already exists");
         }
     }
+
+    @Transactional(readOnly = true)
+    public ActivationResponse findById(UUID id) {
+
+        ActivationRequest entity =
+                repository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Request not found"
+                                ));
+
+        return mapper.toResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ActivationResponse> findAll(RequestStatus status, String customerId, Pageable pageable) {
+
+        Page<ActivationRequest> requests;
+
+        if (status != null && customerId != null) {
+            requests = repository.findByStatusAndCustomerId(status, customerId, pageable);
+
+        } else if (status != null) {
+            requests = repository.findByStatus(status, pageable);
+
+        } else if (customerId != null) {
+            requests = repository.findByCustomerId(customerId, pageable);
+
+        } else {
+            requests = repository.findAll(pageable);
+        }
+
+        return requests.map(mapper::toResponse);
+    }
+
+
 }
