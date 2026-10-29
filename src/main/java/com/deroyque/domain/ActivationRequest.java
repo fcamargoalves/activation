@@ -3,14 +3,11 @@ package com.deroyque.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter
-@Setter
-@Entity
+
 @Table(
         name = "activation_requests",
         uniqueConstraints = {
@@ -20,6 +17,9 @@ import java.util.UUID;
                 )
         }
 )
+@Getter
+@Setter
+@Entity
 public class ActivationRequest {
 
     @Id
