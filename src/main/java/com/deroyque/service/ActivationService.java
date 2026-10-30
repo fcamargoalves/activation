@@ -93,15 +93,19 @@ public class ActivationService {
     private void processActivation(ActivationRequest request) {
 
         try {
-            request.setStatus(RequestStatus.PROCESSING);
+            //request.setStatus(RequestStatus.PROCESSING);
+            request.changeStatus(RequestStatus.PROCESSING);
             repository.save(request);
             providerService.activate(request.getCustomerId(), request.getProductCode());
-            request.setStatus(RequestStatus.COMPLETED);
+
+            //request.setStatus(RequestStatus.COMPLETED);
+            request.changeStatus(RequestStatus.COMPLETED);
             request.setUpdatedAt(Instant.now());
             repository.save(request);
 
         } catch (Exception ex) {
-            request.setStatus(RequestStatus.FAILED);
+            //request.setStatus(RequestStatus.FAILED);
+            request.changeStatus(RequestStatus.FAILED);
             request.setUpdatedAt(Instant.now());
             repository.save(request);
         }
