@@ -23,10 +23,12 @@ public class ActivationService {
 
     private final ActivationRequestRepository repository;
     private final ActivationMapper mapper;
+    private final ProviderActivationService providerService;
 
-    public ActivationService(ActivationRequestRepository repository, ActivationMapper mapper) {
+    public ActivationService(ActivationRequestRepository repository, ActivationMapper mapper, ProviderActivationService providerService) {
         this.repository = repository;
         this.mapper = mapper;
+        this.providerService = providerService;
     }
 
     @Transactional
@@ -44,6 +46,8 @@ public class ActivationService {
             entity.setUpdatedAt(Instant.now());
 
             ActivationRequest saved = repository.save(entity);
+
+            processActivation(saved);
 
             return mapper.toResponse(saved);
 
@@ -86,5 +90,20 @@ public class ActivationService {
         return requests.map(mapper::toResponse);
     }
 
+    private void processActivation(ActivationRequest request) {
 
+        try {
+            request.setStatus(RequestStatus.PROCESSING);
+            repository.save(request);
+            providerService.activate(request.getCustomerId(), request.getProductCode());
+            request.setStatus(RequestStatus.COMPLETED);
+            request.setUpdatedAt(Instant.now());
+            repository.save(request);
+
+        } catch (Exception ex) {
+            request.setStatus(RequestStatus.FAILED);
+            request.setUpdatedAt(Instant.now());
+            repository.save(request);
+        }
+    }
 }

@@ -38,4 +38,14 @@ public class GlobalExceptionHandler {
 
         return problem;
     }
+
+    @ExceptionHandler(IntegrationException.class)
+    public ProblemDetail handleIntegration(IntegrationException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_GATEWAY);
+        problem.setTitle("Provider Integration Error");
+        problem.setDetail(ex.getMessage());
+
+        return problem;
+    }
 }
